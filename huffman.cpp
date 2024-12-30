@@ -250,7 +250,7 @@ void write_into_compress_file(char eltashfer[], int size_arr)
   {
     for (int i = 0; i < size_arr; i++)
     {
-      mycompress_filefile.write(&eltashfer[i], sizeof(char));
+      mycompress_filefile << eltashfer[i];
     }
   }
 }
