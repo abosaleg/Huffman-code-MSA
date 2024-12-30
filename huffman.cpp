@@ -197,13 +197,39 @@ void read(string &text)
   else
   {
     cout << "Error Invalid choice \n";
-    read(text);
+    read(text, codes);
   }
 
   if (text.empty())
   {
     cout << "Error Empty input" << endl;
     read(text);
+  }
+}
+void compresscodes(string codes[], char x[])
+{
+  string allcode;
+  for (int i = 0; i < 256; i++)
+  {
+    allcode += codes[i];
+  }
+    char temp = 0;
+    int posbit = 0;
+    int j = 0;
+    
+    for (int i = 0; i < allcode.length(); i++)
+    {
+      int bitValue = allcode[i];
+      temp = temp | (posbit << bitValue);
+      posbit++; 
+      if (posbit == 8)
+      {
+        x[j]=temp;
+        temp = 0;
+        posbit = 0;
+        j++;
+      }
+
   }
 }
 int main()
