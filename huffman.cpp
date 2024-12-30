@@ -225,8 +225,9 @@ void compresscodes(string allcode, char x[])
     }
     // Handle remaining bits if any
     if (posbit > 0) {
-        x[j] = temp;
+        x[j++] = temp;
     }
+    x[j] = '\0';
 }
 
 void allcode_in_one_string(string codes[], string &allcode, int n)
@@ -298,9 +299,9 @@ int main()
 
   print_frequency_and_codes(number_of_characters, characters, frequencies, codes);
   allcode_in_one_string(codes, allcode, number_of_characters);
-  cout << "All codes in one string: " << allcode << endl;  // Debug print
+  cout << "All codes in one string:        " << allcode << endl;  // Debug print
 
-  int size_arr = allcode.length() / 8 + 5; // 5 for extra space
+  int size_arr = (allcode.length() + 7) / 8; 
   char eltashfer[size_arr];
   compresscodes(allcode, eltashfer);
   write_into_compress_file(eltashfer, size_arr);

@@ -1,0 +1,1 @@
+t bitpos = 7; bitpos >= 0; b
