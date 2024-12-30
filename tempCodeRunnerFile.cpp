@@ -1,2 +1,1 @@
-temp = 0;
-    posbit = 0;
+output_file.txt
