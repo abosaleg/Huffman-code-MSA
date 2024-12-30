@@ -1,1 +1,2 @@
-t bitpos = 7; bitpos >= 0; b
+temp = 0;
+    posbit = 0;
