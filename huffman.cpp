@@ -166,7 +166,7 @@ void calc_frequency(string text, int frequency[], char characters[], int &n_char
   }
 }
 
-void read(string &text)
+void read(string &text,codes[])
 {
 
   int flag_read;
