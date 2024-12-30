@@ -225,7 +225,6 @@ void compresscodes(int size_arr, char eltashfer[], string codes[], int n)
       }
     }
   }
-
   // Handle remaining bits if any
   if (posbit > 0)
   {
@@ -235,12 +234,14 @@ void compresscodes(int size_arr, char eltashfer[], string codes[], int n)
 }
 
 
-void allcode_in_one_string(string codes[], string &allcode, int n)
+int all_binarycode_size_in_bytes(string codes[], string &allcode, int n, int &size_arr)
 {
   for (int i = 0; i < n; i++)
   {
     allcode += codes[i];
   }
+   int  size_arr = (allcode.length() + 7) / 8;
+  
 }
 
 void write_into_compress_file(char eltashfer[], int size_arr)
@@ -276,7 +277,7 @@ void decoding_compress_file()
   for (int i = 0; i < text.length(); i++)
   {
     byte = text[i];
-    for (int bitpos = 7; bitpos >= 0; bitpos--) // Read from left to right
+    for (int bitpos = 7; bitpos >= 0; bitpos--) 
     {
       if (byte & (1 << bitpos))
         code_from_compress += '1';
@@ -295,7 +296,7 @@ int main()
   char characters[256];
   int frequencies[256];
   string codes[256] = {""};
-  int number_of_characters = 0;
+  int number_of_characters = 0,size_arr;
   string allcode;
   read(text);
   calc_frequency(text, frequency, characters, number_of_characters, frequencies, codes);
@@ -307,10 +308,8 @@ int main()
   generateCodes(x.head, "", codes, characters, number_of_characters);
 
   print_frequency_and_codes(number_of_characters, characters, frequencies, codes);
-  allcode_in_one_string(codes, allcode, number_of_characters);
+  all_binarycode_size_in_bytes(codes, allcode, number_of_characters,size_arr);
   cout << "All codes in one string:        " << allcode << endl; // Debug print
-
-  int size_arr = (allcode.length() + 7) / 8;
   char eltashfer[size_arr];
   compresscodes(size_arr, eltashfer, codes, number_of_characters);
   write_into_compress_file(eltashfer, size_arr);
