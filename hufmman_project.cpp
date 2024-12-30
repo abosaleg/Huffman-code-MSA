@@ -216,7 +216,6 @@ int main()
   string codes[256] = {""};
   int number_of_characters = 0;
 
-
   read(text);
   calc_frequency(text, frequency, characters, number_of_characters, frequencies, codes);
 
