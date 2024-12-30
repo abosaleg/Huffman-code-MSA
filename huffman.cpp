@@ -206,76 +206,81 @@ void read(string &text)
 ///////////////
 void compresscodes(string allcode, char x[])
 {
-    char temp = 0;
-    int posbit = 0;
-    int j = 0;
+  char temp = 0;
+  int posbit = 0;
+  int j = 0;
 
-    for (int i = 0; i < allcode.length(); i++)
+  for (int i = 0; i < allcode.length(); i++)
+  {
+    int bitValue = allcode[i] - '0';
+    temp = temp | (bitValue << (7 - posbit)); // Changed to store from left to right
+    posbit++;
+    if (posbit == 8)
     {
-        int bitValue = allcode[i] - '0';
-        temp = temp | (bitValue << (7 - posbit));  // Changed to store from left to right
-        posbit++;
-        if (posbit == 8)
-        {
-            x[j] = temp;
-            temp = 0;
-            posbit = 0;
-            j++;
-        }
+      x[j] = temp;
+      temp = 0;
+      posbit = 0;
+      j++;
     }
-    // Handle remaining bits if any
-    if (posbit > 0) {
-        x[j++] = temp;
-    }
-    x[j] = '\0';
+  }
+  // Handle remaining bits if any
+  if (posbit > 0)
+  {
+    x[j] = temp;
+  }
+  
 }
 
 void allcode_in_one_string(string codes[], string &allcode, int n)
 {
-    for (int i = 0; i < n; i++)
-    {
-        allcode += codes[i];
-    }
+  for (int i = 0; i < n; i++)
+  {
+    allcode += codes[i];
+  }
 }
 
 void write_into_compress_file(char eltashfer[], int size_arr)
 {
-    ofstream mycompress_filefile("compress_file.txt", ios::binary);
-    if (!mycompress_filefile.is_open())
+  ofstream mycompress_filefile("compress_file.txt", ios::binary);
+  if (!mycompress_filefile.is_open())
+  {
+    cout << "Error writing file not open \n";
+  }
+  else
+  {
+    for (int i = 0; i < size_arr; i++)
     {
-        cout << "Error writing file not open \n";
+      mycompress_filefile.write(&eltashfer[i], sizeof(char));
     }
-    else
-    {
-        for (int i = 0; i < size_arr; i++)
-        {
-            mycompress_filefile.write(&eltashfer[i], sizeof(char));
-        }
-    }
+  }
 }
 
 void decoding_compress_file()
 {
-    ifstream myreadfile("compress_file.txt", ios::binary);
-    if (!myreadfile.is_open())
+  ifstream myreadfile("compress_file.txt");
+  if (!myreadfile.is_open())
+  {
+    cout << "Error reading file not open \n";
+    return;
+  }
+  string text = "", temp = "", code_from_compress = "";
+  char byte;
+  while (getline(myreadfile, temp))
+  {
+    text += temp;
+  }
+  for (int i = 0; i < text.length(); i++)
+  {
+    byte = text[i];
+    for (int bitpos = 7; bitpos >= 0; bitpos--) // Read from left to right
     {
-        cout << "Error reading file not open \n";
-        return;
+      if (byte & (1 << bitpos))
+        code_from_compress += '1';
+      else
+        code_from_compress += '0';
     }
-    string text = "", code_from_compress = "";
-    char byte;
-    
-    while (myreadfile.get(byte))
-    {
-        for (int bitpos = 7; bitpos >= 0; bitpos--)  // Read from left to right
-        {
-            if (byte & (1 << bitpos))
-                code_from_compress += '1';
-            else
-                code_from_compress += '0';
-        }
-    }
-    cout << "The code from compress file is: " << code_from_compress << endl;
+  }
+  cout << "The code from compress file is: " << code_from_compress << endl;
 }
 
 int main()
@@ -299,9 +304,9 @@ int main()
 
   print_frequency_and_codes(number_of_characters, characters, frequencies, codes);
   allcode_in_one_string(codes, allcode, number_of_characters);
-  cout << "All codes in one string:        " << allcode << endl;  // Debug print
+  cout << "All codes in one string:        " << allcode << endl; // Debug print
 
-  int size_arr = (allcode.length() + 7) / 8; 
+  int size_arr = (allcode.length() + 7) / 8;
   char eltashfer[size_arr];
   compresscodes(allcode, eltashfer);
   write_into_compress_file(eltashfer, size_arr);
