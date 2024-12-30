@@ -166,29 +166,27 @@ void calc_frequency(string text, int frequency[], char characters[], int &n_char
   }
 }
 
-void read(string &text,codes[])
-{
 
+void read(string &text)
+{
   int flag_read;
   string temp = "";
-  cout << "if you want to generat code from text click t  \n"
-       << "if you want to generat code from file click f\n";
+  cout << "if you want to generate code from text click t  \n"
+       << "if you want to generate code from file click f\n";
   flag_read = _getch();
   if ('t' == flag_read)
   {
     cout << "Enter the text: \n";
     getline(cin, text);
   }
-
   else if ('f' == flag_read)
   {
     ifstream myreadfile("readfile.txt");
     if (!myreadfile.is_open())
     {
-
       cout << "Error reading file not open \n";
+      return;
     }
-
     while (getline(myreadfile, temp))
     {
       text += temp;
@@ -197,39 +195,63 @@ void read(string &text,codes[])
   else
   {
     cout << "Error Invalid choice \n";
-    read(text, codes);
+    read(text);
   }
-
   if (text.empty())
   {
     cout << "Error Empty input" << endl;
     read(text);
   }
 }
-void compresscodes(string codes[], char x[])
+
+///////////////
+void compresscodes(string allcode, char x[])
 {
-  string allcode;
+  
+  char temp = 0;
+  int posbit = 0;
+  int j = 0;
+
+  for (int i = 0; i < allcode.length(); i++)
+  {
+    /*
+     0=48 in ascii
+     1=49 in ascii
+     0-48=0
+     1-48=1
+     */
+    int bitValue = allcode[i] - '0';
+    temp = temp | (bitValue << posbit);
+    posbit++;
+    if (posbit == 8)
+    {
+      x[j] = temp;
+      temp = 0;
+      posbit = 0;
+      j++;
+    }
+  }
+}
+void allcode_in_one_string(string codes[], string &allcode)
+{
   for (int i = 0; i < 256; i++)
   {
     allcode += codes[i];
   }
-    char temp = 0;
-    int posbit = 0;
-    int j = 0;
-    
-    for (int i = 0; i < allcode.length(); i++)
+}
+void write( char eltashfer[],int size_arr)
+{
+  ofstream mywritefile("writefile.txt");
+  if (!mywritefile.is_open())
+  {
+    cout << "Error writing file not open \n";
+  }
+  else
+  {
+    for (int i = 0; i <size_arr; i++)
     {
-      int bitValue = allcode[i];
-      temp = temp | (posbit << bitValue);
-      posbit++; 
-      if (posbit == 8)
-      {
-        x[j]=temp;
-        temp = 0;
-        posbit = 0;
-        j++;
-      }
-
+      mywritefile << eltashfer[i];
+    }
   }
 }
 int main()
@@ -241,7 +263,7 @@ int main()
   int frequencies[256];
   string codes[256] = {""};
   int number_of_characters = 0;
-
+string allcode;
   read(text);
   calc_frequency(text, frequency, characters, number_of_characters, frequencies, codes);
 
@@ -252,4 +274,9 @@ int main()
   generateCodes(x.head, "", codes, characters, number_of_characters);
 
   print_frequency_and_codes(number_of_characters, characters, frequencies, codes);
+  allcode_in_one_string(codes, allcode);
+  int size_arr = allcode.length() / 8 + 5; // 5 for extra space
+  char eltashfer[size_arr];
+  compresscodes(allcode,eltashfer );
+  write( eltashfer,size_arr);
 }
