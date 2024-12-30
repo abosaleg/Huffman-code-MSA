@@ -166,7 +166,6 @@ void calc_frequency(string text, int frequency[], char characters[], int &n_char
   }
 }
 
-
 void read(string &text)
 {
   int flag_read;
@@ -181,7 +180,7 @@ void read(string &text)
   }
   else if ('f' == flag_read)
   {
-    ifstream myreadfile("readfile.txt");
+    ifstream myreadfile("input_file.txt");
     if (!myreadfile.is_open())
     {
       cout << "Error reading file not open \n";
@@ -207,53 +206,77 @@ void read(string &text)
 ///////////////
 void compresscodes(string allcode, char x[])
 {
-  
-  char temp = 0;
-  int posbit = 0;
-  int j = 0;
+    char temp = 0;
+    int posbit = 0;
+    int j = 0;
 
-  for (int i = 0; i < allcode.length(); i++)
-  {
-    /*
-     0=48 in ascii
-     1=49 in ascii
-     0-48=0
-     1-48=1
-     */
-    int bitValue = allcode[i] - '0';
-    temp = temp | (bitValue << posbit);
-    posbit++;
-    if (posbit == 8)
+    for (int i = 0; i < allcode.length(); i++)
     {
-      x[j] = temp;
-      temp = 0;
-      posbit = 0;
-      j++;
+        int bitValue = allcode[i] - '0';
+        temp = temp | (bitValue << (7 - posbit));  // Changed to store from left to right
+        posbit++;
+        if (posbit == 8)
+        {
+            x[j] = temp;
+            temp = 0;
+            posbit = 0;
+            j++;
+        }
     }
-  }
+    // Handle remaining bits if any
+    if (posbit > 0) {
+        x[j] = temp;
+    }
 }
-void allcode_in_one_string(string codes[], string &allcode)
+
+void allcode_in_one_string(string codes[], string &allcode, int n)
 {
-  for (int i = 0; i < 256; i++)
-  {
-    allcode += codes[i];
-  }
-}
-void write( char eltashfer[],int size_arr)
-{
-  ofstream mywritefile("writefile.txt");
-  if (!mywritefile.is_open())
-  {
-    cout << "Error writing file not open \n";
-  }
-  else
-  {
-    for (int i = 0; i <size_arr; i++)
+    for (int i = 0; i < n; i++)
     {
-      mywritefile << eltashfer[i];
+        allcode += codes[i];
     }
-  }
 }
+
+void write_into_compress_file(char eltashfer[], int size_arr)
+{
+    ofstream mycompress_filefile("compress_file.txt", ios::binary);
+    if (!mycompress_filefile.is_open())
+    {
+        cout << "Error writing file not open \n";
+    }
+    else
+    {
+        for (int i = 0; i < size_arr; i++)
+        {
+            mycompress_filefile.write(&eltashfer[i], sizeof(char));
+        }
+    }
+}
+
+void decoding_compress_file()
+{
+    ifstream myreadfile("compress_file.txt", ios::binary);
+    if (!myreadfile.is_open())
+    {
+        cout << "Error reading file not open \n";
+        return;
+    }
+    string text = "", code_from_compress = "";
+    char byte;
+    
+    while (myreadfile.get(byte))
+    {
+        for (int bitpos = 7; bitpos >= 0; bitpos--)  // Read from left to right
+        {
+            if (byte & (1 << bitpos))
+                code_from_compress += '1';
+            else
+                code_from_compress += '0';
+        }
+    }
+    cout << "The code from compress file is: " << code_from_compress << endl;
+}
+
 int main()
 {
   linkedlist x;
@@ -263,7 +286,7 @@ int main()
   int frequencies[256];
   string codes[256] = {""};
   int number_of_characters = 0;
-string allcode;
+  string allcode;
   read(text);
   calc_frequency(text, frequency, characters, number_of_characters, frequencies, codes);
 
@@ -274,9 +297,12 @@ string allcode;
   generateCodes(x.head, "", codes, characters, number_of_characters);
 
   print_frequency_and_codes(number_of_characters, characters, frequencies, codes);
-  allcode_in_one_string(codes, allcode);
+  allcode_in_one_string(codes, allcode, number_of_characters);
+  cout << "All codes in one string: " << allcode << endl;  // Debug print
+
   int size_arr = allcode.length() / 8 + 5; // 5 for extra space
   char eltashfer[size_arr];
-  compresscodes(allcode,eltashfer );
-  write( eltashfer,size_arr);
+  compresscodes(allcode, eltashfer);
+  write_into_compress_file(eltashfer, size_arr);
+  decoding_compress_file();
 }
