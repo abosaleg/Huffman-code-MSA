@@ -203,16 +203,25 @@ void read(string &text)
   }
 }
 ///////////////
-void compresscodes(int size_arr, char eltashfer[], string codes, int n)
+void compresscodes(int size_arr, char eltashfer[],  int n)
 {
   char temp = 0;
   int posbit = 0;
   int j = 0;
+string line;
+ifstream myreadfile("all_input_code.txt", std::ios::binary);
+  if (!myreadfile.is_open())
+  {
+    cout << "Error reading file not open \n";
+    return;
+  }
+  while (getline(myreadfile, line))
+  {
   
 
-    for (int k = 0; k < codes.length(); k++)
+    for (int k = 0; k < line.length(); k++)
     {
-      int bitValue = codes[k] - '0';
+      int bitValue = line[k] - '0';
       temp = temp | (bitValue << (7 - posbit)); // Changed to store from left to right
       posbit++;
       if (posbit == 8)
@@ -231,7 +240,7 @@ void compresscodes(int size_arr, char eltashfer[], string codes, int n)
     eltashfer[j] = temp;
   }
   }
-
+}
 void allcode_in_one_string(string codes[], string &allcode, int n)
 {
   for (int i = 0; i < n; i++)
@@ -242,7 +251,7 @@ void allcode_in_one_string(string codes[], string &allcode, int n)
 
 void write_into_compress_file(char eltashfer[], int size_arr)
 {
-  ofstream mycompress_filefile("compress_file.txt");
+  ofstream mycompress_filefile("compress_file.txt", std::ios::binary);
   if (!mycompress_filefile.is_open())
   {
     cout << "Error writing file not open \n";
@@ -283,14 +292,25 @@ void decoding_compress_file(string &code_from_compress)
   }
   // cout << "The code from compress file is: " << code_from_compress << endl; // Debug print
 }
-void convert_code_to_text(string code_from_compress, string codes[], int n, char characters[])
+void convert_code_to_text( string codes[], int n, char characters[])
 {
   string text = "";
   string temp = "";
-
-  for (int i = 0; i < code_from_compress.length(); i++)
+  string line = "";
+  ifstream myreadfile("all_input_code.txt", std::ios::binary);
+  if (!myreadfile.is_open())
   {
-    temp += code_from_compress[i];
+    cout << "Error reading file not open \n";
+    return;
+  }
+  while (getline(myreadfile, line))
+  {
+    
+  
+
+  for (int i = 0; i < line.length(); i++)
+  {
+    temp += line[i];
     for (int j = 0; j < n; j++)
     {
       if (temp == codes[j])
@@ -302,7 +322,7 @@ void convert_code_to_text(string code_from_compress, string codes[], int n, char
     }
   }
   cout << "The text from compress file is: " << text << endl;
-  ofstream myoutfile("output_file.txt");
+  ofstream myoutfile("output_file.txt", std::ios::binary);
   if (myoutfile.is_open())
   {
     myoutfile << text;
@@ -311,10 +331,11 @@ void convert_code_to_text(string code_from_compress, string codes[], int n, char
   else
     cout << "Unable to open file";
 }
+}
 void all_input_in_one_string(string &all_input)
 {
   string line = "";
-  ifstream inputfile("input_file.txt");
+  ifstream inputfile("input_file.txt", std::ios::binary);
   if (!inputfile.is_open())
   {
     cout << "Error reading file not open \n";
@@ -326,22 +347,30 @@ void all_input_in_one_string(string &all_input)
   }
   cout << "The input from input file is:   " << all_input << endl;
 }
-string  all_input_code(string all_input_in_one_string, string codes[], int n, char characters[])
+void  all_input_code(string all_input_in_one_string, string codes[], int n, char characters[])
 {
-  string all_input_code = "";
-  for (int i = 0; i < all_input_in_one_string.length(); i++)
+
+  ofstream mywritefile("all_input_code.txt", std::ios::binary);
+  if (!mywritefile.is_open())
   {
-    for (int j = 0; j < n; j++)
+    cout << "Error writing file not open \n";
+  }
+  else
+  {
+    for (int i = 0; i < all_input_in_one_string.length(); i++)
     {
-      if (all_input_in_one_string[i] == characters[j])
+      for (int j = 0; j < n; j++)
       {
-        all_input_code += codes[j];
-        break;
+        if (all_input_in_one_string[i] == characters[j])
+        {
+          mywritefile << codes[j];
+          break;
+        }
       }
     }
+    // cout << "The code from input file is:  " << all_input_code << endl; // Debug print
+    
   }
-  // cout << "The code from input file is:  " << all_input_code << endl; // Debug print
-  return all_input_code;
 }
 
 int main()
@@ -369,11 +398,11 @@ int main()
   int size_arr = (allcode.length() + 7) / 8;
   char eltashfer[size_arr];
   // cout << "All codes in one string:        " << allcode << endl; // Debug print
-  all_input_in_one_string(all_input);
-  string  all_in_code=all_input_code(all_input, codes, number_of_characters, characters);
+    all_input_in_one_string(all_input);
+    all_input_code(all_input, codes, number_of_characters, characters);
 
-  compresscodes(size_arr, eltashfer, all_in_code, number_of_characters);
+  compresscodes(size_arr, eltashfer, number_of_characters);
   write_into_compress_file(eltashfer, size_arr);
   decoding_compress_file(code_from_compress);
-  convert_code_to_text( all_in_code, codes,number_of_characters, characters);
+  convert_code_to_text(  codes,number_of_characters, characters);
 }
