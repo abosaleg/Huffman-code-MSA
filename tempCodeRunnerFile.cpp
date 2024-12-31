@@ -1,1 +1,1 @@
-output_file.txt
+ code_from_compress += '1';
