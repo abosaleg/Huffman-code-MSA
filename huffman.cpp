@@ -262,15 +262,20 @@ void decoding_compress_file(string &code_from_compress)
     return;
   }
   char byte;
+  string temp = "";
 
-  while (myreadfile.get(byte))
+  getline(myreadfile, temp);
+  for (int i = 0; i < temp.length(); i++)
   {
-    for (int bitpos = 7; bitpos >= 0; bitpos--)
+    byte = temp[i];
     {
-      if (byte & (1 << bitpos))
-        code_from_compress += '1';
-      else
-        code_from_compress += '0';
+      for (int bitpos = 7; bitpos >= 0; bitpos--)
+      {
+        if (byte & (1 << bitpos))
+          code_from_compress += '1';
+        else
+          code_from_compress += '0';
+      }
     }
   }
 }
