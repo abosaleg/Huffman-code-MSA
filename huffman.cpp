@@ -203,42 +203,32 @@ void read(string &text)
   }
 }
 ///////////////
-void compresscodes(int size_arr, char eltashfer[], int n)
+void compresscodes(int size_arr, char eltashfer[], string allcode)
 {
   char temp = 0;
   int posbit = 0;
   int j = 0;
-  string line;
-  ifstream myreadfile("all_input_code.txt", std::ios::binary);
-  if (!myreadfile.is_open())
+
+  for (int i = 0; i < allcode.length(); ++i)
   {
-    cout << "Error reading file not open \n";
-    return;
+    char bit = allcode[i];
+    int bitValue = bit - '0';
+    temp = temp | (bitValue << (7 - posbit));
+    posbit++;
+    if (posbit == 8)
+    {
+      eltashfer[j++] = temp;
+      temp = 0;
+      posbit = 0;
+    }
   }
-  while (getline(myreadfile, line))
+
+  if (posbit > 0)
   {
-
-    for (int k = 0; k < line.length(); k++)
-    {
-      int bitValue = line[k] - '0';
-      temp = temp | (bitValue << (7 - posbit)); // Changed to store from left to right
-      posbit++;
-      if (posbit == 8)
-      {
-        eltashfer[j] = temp;
-        temp = 0;
-        posbit = 0;
-        j++;
-      }
-    }
-
-    // Handle remaining bits if any
-    if (posbit > 0)
-    {
-      eltashfer[j] = temp;
-    }
+    eltashfer[j] = temp;
   }
 }
+
 void allcode_in_one_string(string codes[], string &allcode, int n)
 {
   for (int i = 0; i < n; i++)
@@ -268,28 +258,23 @@ void decoding_compress_file(string &code_from_compress)
   ifstream myreadfile("compress_file.txt", std::ios::binary);
   if (!myreadfile.is_open())
   {
-    cout << "Error reading file not open \n";
+    cout << "Error reading file not open\n";
     return;
   }
-  string text = "", temp = "";
   char byte;
-  while (getline(myreadfile, temp))
+
+  while (myreadfile.get(byte))
   {
-    text += temp;
-  }
-  for (int i = 0; i < text.length(); i++)
-  {
-    byte = text[i];
-    for (int bitpos = 7; bitpos >= 0; bitpos--) // Read from left to right
+    for (int bitpos = 7; bitpos >= 0; bitpos--)
     {
       if (byte & (1 << bitpos))
-        code_from_compress += '1';  // ! bug here ??????????????
+        code_from_compress += '1';
       else
         code_from_compress += '0';
     }
   }
-  // cout << "The code from compress file is: " << code_from_compress << endl; // Debug print
 }
+
 void convert_code_to_text(string codes[], int n, char characters[])
 {
   string text = "";
@@ -396,7 +381,7 @@ int main()
   all_input_in_one_string(all_input);
   all_input_code(all_input, codes, number_of_characters, characters);
 
-  compresscodes(size_arr, eltashfer, number_of_characters);
+  compresscodes(size_arr, eltashfer, allcode);
   write_into_compress_file(eltashfer, size_arr);
   decoding_compress_file(code_from_compress);
   convert_code_to_text(codes, number_of_characters, characters);
