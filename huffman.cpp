@@ -19,6 +19,7 @@ public:
     right = NULL;
     next = NULL;
   }
+
   node()
   {
     el7rf = '\0';
@@ -34,6 +35,7 @@ class linkedlist
 public:
   node *head;
   node *tail;
+
   linkedlist()
   {
     head = NULL;
@@ -66,7 +68,7 @@ public:
     node *pTrav = head;
     node *pBack = NULL;
 
-    while (pTrav != NULL && pnn->freq >= pTrav->freq)
+    while (pTrav != NULL && pnn->freq > pTrav->freq)
     {
       pBack = pTrav;
       pTrav = pTrav->next;
@@ -94,7 +96,7 @@ void generateCodes(node *ptrav, string code_till_this_node, string codes[], char
   if (ptrav == NULL)
     return;
 
-  if (ptrav->left == NULL && ptrav->right == NULL) // عشان نتاكد انها ليف
+  if (ptrav->left == NULL && ptrav->right == NULL)
   {
     for (int i = 0; i < n; i++)
     {
@@ -147,63 +149,74 @@ void print_frequency_and_codes(int n, char characters[], int frequencies[], stri
          << ", Huffman Code = " << codes[i] << endl;
   }
 }
-void calc_frequency(string text, int frequency[], char characters[], int &n_char, int frequencies[], string codes[])
+
+void calc_frequency(string &text, int frequency[], char characters[], int &n_char, int frequencies[], string codes[])
 {
+  unsigned char c;
   for (int i = 0; i < text.length(); i++)
   {
-    int ascii_num = text[i]; // الحرف بس ب الاسكي
+    c = text[i];
+    int ascii_num = c;
     frequency[ascii_num]++;
   }
+
+  n_char = 0;
   for (int i = 0; i < 256; i++)
   {
     if (frequency[i] > 0)
     {
-      char el7rf_mn_elascii = i;
-      characters[n_char] = el7rf_mn_elascii;
+      characters[n_char] = i;
       frequencies[n_char] = frequency[i];
-      n_char++; // عدد الحروف منغير تكرار
+      n_char++;
     }
   }
 }
 
-void read(string &text)
+void read(string &text,string filename)
 {
-  int flag_read;
-  string temp = "";
-  cout << "if you want to generate code from text click t  \n"
-       << "if you want to generate code from file click f\n";
+  char flag_read;
+  cout << "If you want to generate code from text press 't'\n"
+       << "If you want to generate code from file press 'f'\n";
   flag_read = _getch();
-  if ('t' == flag_read)
+
+  if (flag_read == 't')
   {
     cout << "Enter the text: \n";
+
     getline(cin, text);
   }
-  else if ('f' == flag_read)
+  else if (flag_read == 'f')
   {
-    ifstream myreadfile("input_file.txt");
+    ifstream myreadfile(filename, ios::binary);
+
     if (!myreadfile.is_open())
     {
-      cout << "Error reading file not open \n";
+      cout << "Error: Could not open input file\n";
       return;
     }
-    while (getline(myreadfile, temp))
-    {
-      text += temp;
-    }
+
+    myreadfile.seekg(0, ios::end);
+    int size = myreadfile.tellg();
+    myreadfile.seekg(0, ios::beg);
+
+    text.resize(size);
+    myreadfile.read(&text[0], size);
+    myreadfile.close();
   }
   else
   {
-    cout << "Error Invalid choice \n";
-    read(text);
+    cout << "Error: Invalid choice\n";
+    read(text,filename);
   }
+
   if (text.empty())
   {
-    cout << "Error Empty input" << endl;
-    read(text);
+    cout << "Error: Empty input\n";
+    read(text,filename);
   }
 }
-///////////////
-void compresscodes(int size_arr, char eltashfer[], string allcode)
+
+void compresscodes(int size_arr, char eltashfer[], string &allcode)
 {
   char temp = 0;
   int posbit = 0;
@@ -215,6 +228,7 @@ void compresscodes(int size_arr, char eltashfer[], string allcode)
     int bitValue = bit - '0';
     temp = temp | (bitValue << (7 - posbit));
     posbit++;
+
     if (posbit == 8)
     {
       eltashfer[j++] = temp;
@@ -237,125 +251,135 @@ void allcode_in_one_string(string codes[], string &allcode, int n)
   }
 }
 
-void write_into_compress_file(char eltashfer[], int size_arr)
+void write_into_compress_file(char *eltashfer, int size_arr)
 {
-  ofstream mycompress_filefile("compress_file.txt", std::ios::binary);
-  if (!mycompress_filefile.is_open())
+  ofstream mycompress_file("compress_file.txt", ios::binary);
+  if (!mycompress_file.is_open())
   {
-    cout << "Error writing file not open \n";
+    cout << "Error: Could not open compression output file\n";
+    return;
   }
-  else
-  {
-    for (int i = 0; i < size_arr; i++)
-    {
-      mycompress_filefile << eltashfer[i];
-    }
-  }
+
+  mycompress_file.write(eltashfer, size_arr);
+  mycompress_file.close();
 }
 
 void decoding_compress_file(string &code_from_compress)
 {
-  ifstream myreadfile("compress_file.txt", std::ios::binary);
+  ifstream myreadfile("compress_file.txt", ios::binary);
   if (!myreadfile.is_open())
   {
-    cout << "Error reading file not open\n";
+    cout << "Error: Could not open compressed file\n";
     return;
   }
-  char byte;
-  string temp = "";
 
-  getline(myreadfile, temp);
-  for (int i = 0; i < temp.length(); i++)
+  char byte;
+  while (myreadfile.read(&byte, 1))
   {
-    byte = temp[i];
+    for (int bitpos = 7; bitpos >= 0; bitpos--)
     {
-      for (int bitpos = 7; bitpos >= 0; bitpos--)
+      if ((byte & (1 << bitpos)))
       {
-        if (byte & (1 << bitpos))
-          code_from_compress += '1';
-        else
-          code_from_compress += '0';
+        code_from_compress += 1;
+      }
+      else
+      {
+        code_from_compress += '0';
       }
     }
   }
+  myreadfile.close();
 }
 
-void convert_code_to_text(string codes[], int n, char characters[])
+void convert_code_to_text(string codes[], int n, char characters[],string filename)
 {
-  string text = "";
-  string temp = "";
-  string line = "";
-  ifstream myreadfile("all_input_code.txt", std::ios::binary);
+  string text;
+  string temp;
+  string line;
+string outname="outputfile ";
+outname+=filename;
+  ifstream myreadfile("all_input_code.txt", ios::binary);
   if (!myreadfile.is_open())
   {
-    cout << "Error reading file not open \n";
+    cout << "Error: Could not open input code file\n";
     return;
   }
+
   while (getline(myreadfile, line))
   {
 
     for (int i = 0; i < line.length(); i++)
     {
-      temp += line[i];
+      char c = line[i];
+      temp += c;
       for (int j = 0; j < n; j++)
       {
         if (temp == codes[j])
         {
           text += characters[j];
-          temp = "";
+          temp.clear();
           break;
         }
       }
     }
-    cout << "The text from compress file is: " << text << endl;
-    ofstream myoutfile("output_file.txt", std::ios::binary);
-    if (myoutfile.is_open())
-    {
-      myoutfile << text;
-      myoutfile.close();
-    }
-    else
-      cout << "Unable to open file";
   }
-}
-void all_input_in_one_string(string &all_input)
-{
-  string line = "";
-  ifstream inputfile("input_file.txt", std::ios::binary);
-  if (!inputfile.is_open())
+  myreadfile.close();
+
+  cout << "Decoded text length: " << text.length() << " bytes\n";
+
+  ofstream myoutfile(outname, ios::binary);
+  if (!myoutfile.is_open())
   {
-    cout << "Error reading file not open \n";
+    cout << "Error: Could not open output file\n";
     return;
   }
-  while (getline(inputfile, line))
-  {
-    all_input += line;
-  }
-  cout << "The input from input file is:   " << all_input << endl;
-}
-void all_input_code(string all_input_in_one_string, string codes[], int n, char characters[])
-{
+int size = text.size();
 
-  ofstream mywritefile("all_input_code.txt", std::ios::binary);
+  myoutfile.write(text.c_str(), size);
+  myoutfile.close();
+
+  cout << "Text successfully decoded and written to output file\n";
+}
+
+void all_input_in_one_string(string &all_input,string filename)
+{
+  ifstream inputfile(filename, ios::binary);
+  if (!inputfile.is_open())
+  {
+    cout << "Error: Could not open input file\n";
+    return;
+  }
+
+  inputfile.seekg(0, ios::end);
+  int size = inputfile.tellg();
+  inputfile.seekg(0, ios::beg);
+
+  all_input.resize(size);
+  inputfile.read(&all_input[0], size);
+  inputfile.close();
+}
+
+void all_input_code(string &all_input, string codes[], int n, char characters[])
+{
+  ofstream mywritefile("all_input_code.txt", ios::binary);
   if (!mywritefile.is_open())
   {
-    cout << "Error writing file not open \n";
+    cout << "Error: Could not open output code file\n";
+    return;
   }
-  else
+  for (int i = 0; i < all_input.size(); i++)
   {
-    for (int i = 0; i < all_input_in_one_string.length(); i++)
+    char c = all_input[i];
+    for (int j = 0; j < n; j++)
     {
-      for (int j = 0; j < n; j++)
+      if (c == characters[j])
       {
-        if (all_input_in_one_string[i] == characters[j])
-        {
-          mywritefile << codes[j];
-          break;
-        }
+        mywritefile << codes[j];
+        break;
       }
     }
-    // cout << "The code from input file is:  " << all_input_code << endl; // Debug print
   }
+  mywritefile.close();
 }
 
 int main()
@@ -365,29 +389,37 @@ int main()
   int frequency[256] = {0};
   char characters[256];
   int frequencies[256];
-  string codes[256] = {""};
+  string codes[256];
   int number_of_characters = 0;
   string allcode;
-  string code_from_compress = "", all_input = "";
-  read(text);
+  string code_from_compress, all_input;
+string filename;
+cout<<"enter file name\n";
+cin>>filename;
+  read(text,filename);
+  if (text.empty())
+  {
+    cout << "Error: No input provided\n";
+    return 0;
+  }
+
   calc_frequency(text, frequency, characters, number_of_characters, frequencies, codes);
-
+  
   attatch_sorted_nude(number_of_characters, characters, frequencies, x);
-
   build_tree(x);
-
   generateCodes(x.head, "", codes, characters, number_of_characters);
-
   print_frequency_and_codes(number_of_characters, characters, frequencies, codes);
+
   allcode_in_one_string(codes, allcode, number_of_characters);
   int size_arr = (allcode.length() + 7) / 8;
-  char eltashfer[size_arr];
-  // cout << "All codes in one string:        " << allcode << endl; // Debug print
-  all_input_in_one_string(all_input);
+  char *eltashfer = new char[size_arr];
+
+  all_input_in_one_string(all_input,filename);
   all_input_code(all_input, codes, number_of_characters, characters);
 
   compresscodes(size_arr, eltashfer, allcode);
   write_into_compress_file(eltashfer, size_arr);
+
   decoding_compress_file(code_from_compress);
-  convert_code_to_text(codes, number_of_characters, characters);
+  convert_code_to_text(codes, number_of_characters, characters,filename);
 }

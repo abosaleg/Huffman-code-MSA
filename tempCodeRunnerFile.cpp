@@ -1,1 +1,0 @@
- code_from_compress += '1';
